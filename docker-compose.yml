@@ -1,0 +1,49 @@
+version: '3.3'
+
+networks:
+  dbnet:
+    external: true
+
+services:
+  mongo-destino:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+    networks:
+      - dbnet
+
+  # mongo-express-destino:
+  #   image: mongo-express
+  #   ports:
+  #     - 8081:8081
+  #   environment:
+  #     ME_CONFIG_BASICAUTH_USERNAME: destino
+  #     ME_CONFIG_BASICAUTH_PASSWORD: 123456
+  #     ME_CONFIG_MONGODB_PORT: 27017
+  #   links:
+  #     - mongo-destino
+  #   depends_on:
+  #     - mongo-destino
+  #   networks:
+  #     - dbnet
+
+  destino-backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: destino-backend
+    env_file: .env
+    ports:
+      - 4000:3000
+    volumes:
+      - .:/destino-backend
+    links:
+      - mongo-destino
+    depends_on:
+      - mongo-destino
+    stdin_open: true
+    tty: true
+    networks:
+      - dbnet
