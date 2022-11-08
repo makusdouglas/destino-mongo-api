@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DataSource, MongoRepository } from 'typeorm';
 import { User } from '../domain/user.entity';
-import { UserWithoutSensitiveInfo } from '../dto/userWithouSensitiveInfo.dto';
+// import { UserWithoutSensitiveInfo } from '../dto/userWithouSensitiveInfo.dto';
 
 @Injectable()
 export class UserRepository extends MongoRepository<User> {
