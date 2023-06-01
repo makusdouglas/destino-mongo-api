@@ -19,7 +19,6 @@ export class UserController {
   findUserByUserNameOrEmail(
     @Param('usernameOrEmail') usernameOrEmail: string,
   ): Promise<UserWithoutSensitiveInfo> {
-    console.log('ENTROU');
     return this.userService.findUserByEmailOrUsername(usernameOrEmail);
   }
 
