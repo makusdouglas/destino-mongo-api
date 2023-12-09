@@ -50,4 +50,8 @@ export class AuthService {
       // permissions: user.permissions || [],
     };
   }
+
+  async getProfile(currentUser: CurrentUserDTO) {
+    return await this.userService.findUserById(currentUser.userId);
+  }
 }

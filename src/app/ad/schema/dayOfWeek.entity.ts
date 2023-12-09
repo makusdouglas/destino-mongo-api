@@ -1,9 +1,9 @@
-import { ObjectIdColumn, ObjectID, Column, Entity } from 'typeorm';
+import { ObjectIdColumn, ObjectId, Column, Entity } from 'typeorm';
 
 @Entity()
 export class DayOfWeek {
   @ObjectIdColumn()
-  _id: ObjectID;
+  _id: ObjectId;
 
   /**
    * 0 - sunday

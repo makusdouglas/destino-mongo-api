@@ -1,24 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DataSource, MongoRepository } from 'typeorm';
 import { User } from '../domain/user.entity';
-// import { UserWithoutSensitiveInfo } from '../dto/userWithouSensitiveInfo.dto';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class UserRepository extends MongoRepository<User> {
   constructor(dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
   }
-  //   findUserByPasswordAndUsernameOrEmail(
-  //     emailOrUsername: string,
-  //     password: string,
-  //   ): Promise<UserWithoutSensitiveInfo> {
-  //     const user = this.findOne({
-  //       where: {
-  //         $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
-  //         password,
-  //       },
-  //     });
-  //   }
+  async findUserById(userId: string): Promise<User> {
+    if (!ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user id');
+    }
+    const objectId = new ObjectId(userId);
+    const user = await this.findOne({
+      // @ts-ignore
+      where: {
+        _id: objectId,
+      },
+    });
+    return user;
+  }
 
   async findUserByEmailOrUsername(usernameOremail: string): Promise<User> {
     const [user] = await this.find({

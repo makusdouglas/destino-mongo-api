@@ -1,4 +1,4 @@
-FROM node:12.13-alpine
+FROM node:18-alpine
 
 RUN apk add -U --no-cache curl bash openssl
 
@@ -10,8 +10,11 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
     && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
+# RUN npm install -g yarn
+
 COPY ./package.json ./
 
-EXPOSE 3000
 
-CMD dockerize -wait tcp://mongo-destino:27017 -timeout 400s -wait-retry-interval 10s npm run start:dev
+CMD dockerize -wait tcp://mongo-destino:27017 -timeout 400s -wait-retry-interval 10s yarn start:dev
+
+EXPOSE 3000

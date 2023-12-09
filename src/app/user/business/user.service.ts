@@ -1,12 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ObjectId } from 'mongodb';
 import { CryptoService } from 'src/app/auth/business/crypto.service';
-import { UpdateWriteOpResult } from 'typeorm';
+import { UpdateResult, Document } from 'typeorm';
 import { User } from '../domain/user.entity';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { UserWithoutSensitiveInfo } from '../dto/userWithouSensitiveInfo.dto';
 import { UserRepository } from '../repository/user.repository';
+import { RemoveUserSensitiveInfoHelper } from '../helpers/remove-user-sensitive-info';
 
 @Injectable()
 export class UserService {
@@ -16,7 +21,32 @@ export class UserService {
   ) {}
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+    return await this.userRepository.find({
+      where: {
+        active: true,
+      },
+      select: [
+        '_id',
+        'name',
+        'username',
+        'email',
+        'phone',
+        'photo',
+        'pontuation',
+        'type',
+        'interest',
+        'createdAt',
+      ],
+    });
+  }
+  async findUserById(userId: string): Promise<UserWithoutSensitiveInfo> {
+    const user = await this.userRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const safeUser = new RemoveUserSensitiveInfoHelper(user)
+      .userWithoutSensitiveInfo;
+    return safeUser;
   }
   async createUser(newUser: CreateUserDto): Promise<UserWithoutSensitiveInfo> {
     const userExists = await this.checkIfUsernameOrEmailAlreadyExists(
@@ -60,8 +90,10 @@ export class UserService {
       },
     );
     try {
-      const { password, ...createdUser } = await this.userRepository.save(user);
-      return createdUser;
+      const newUser = await this.userRepository.save(user);
+      const safeUser = new RemoveUserSensitiveInfoHelper(newUser)
+        .userWithoutSensitiveInfo;
+      return safeUser;
     } catch (error) {
       throw new BadRequestException('Fail to create a new user');
     }
@@ -80,25 +112,31 @@ export class UserService {
     return await this.userRepository.findUserByEmailOrUsername(usernameOrEmail);
   }
 
-  async updateUserById(
-    id: string,
-    userData: UpdateUserDto,
-  ): Promise<UpdateWriteOpResult> {
-    return await this.userRepository.updateOne(
-      { _id: new ObjectId(id) },
+  async getSeneitiveUserByEmailOrUsername(
+    usernameOrEmail: string,
+  ): Promise<UserWithoutSensitiveInfo> {
+    const user = await this.userRepository.findUserByEmailOrUsername(
+      usernameOrEmail,
+    );
+
+    return this.doRemoveUserSensitiveInfo(user);
+  }
+
+  updateUserById(id: string, userData: UpdateUserDto): void {
+    const userUbjectId = new ObjectId(id);
+    this.userRepository.updateOne(
+      {
+        _id: userUbjectId,
+      },
       {
         $set: userData,
       },
     );
   }
 
-  // async findUserByPasswordAndUsernameOrEmail(
-  //   emailOrUsername: string,
-  //   password: string,
-  // ): Promise<UserWithoutSensitiveInfo> {
-  //   return this.userRepository.findUserByPasswordAndUsernameOrEmail(
-  //     emailOrUsername,
-  //     password,
-  //   );
-  // }
+  private doRemoveUserSensitiveInfo(user: User): UserWithoutSensitiveInfo {
+    const safeUser = new RemoveUserSensitiveInfoHelper(user)
+      .userWithoutSensitiveInfo;
+    return safeUser;
+  }
 }

@@ -5,21 +5,18 @@ import { User } from '../domain/user.entity';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { UserWithoutSensitiveInfo } from '../dto/userWithouSensitiveInfo.dto';
+import { CurrentUser } from 'src/app/auth/guards/decorators/currentUser.decorator';
+import { CurrentUserDTO } from 'src/app/auth/guards/dto/currentUser.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  findAll(): Promise<User[]> {
-    return this.userService.findAll();
-  }
-
   @Get(':usernameOrEmail')
   findUserByUserNameOrEmail(
     @Param('usernameOrEmail') usernameOrEmail: string,
   ): Promise<UserWithoutSensitiveInfo> {
-    return this.userService.findUserByEmailOrUsername(usernameOrEmail);
+    return this.userService.getSeneitiveUserByEmailOrUsername(usernameOrEmail);
   }
 
   @Public()
@@ -30,11 +27,12 @@ export class UserController {
     return this.userService.createUser(userData);
   }
 
-  @Put(':id')
+  @Put()
   updateUser(
-    @Param(':id') id: string,
     @Body() userData: UpdateUserDto,
-  ): Promise<any> {
-    return this.userService.updateUserById(id, userData);
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ): void {
+    console.log('userData', userData);
+    return this.userService.updateUserById(currentUser.userId, userData);
   }
 }

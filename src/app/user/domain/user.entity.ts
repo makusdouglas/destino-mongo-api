@@ -1,18 +1,20 @@
 import {
   Entity,
   ObjectIdColumn,
-  ObjectID,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  PrimaryColumn,
 } from 'typeorm';
 import { UserInterest } from '../enum/userInterest.dto';
+import { ObjectId } from 'mongodb';
 
 @Entity('users')
 export class User {
   @ObjectIdColumn()
-  _id: ObjectID;
+  @PrimaryColumn()
+  _id: ObjectId;
 
   @Column({
     nullable: false,
@@ -69,7 +71,7 @@ export class User {
   cep: string;
 
   @Column()
-  attendedAds: ObjectID[];
+  attendedAds: ObjectId[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

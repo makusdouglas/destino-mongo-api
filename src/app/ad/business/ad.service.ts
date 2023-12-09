@@ -24,8 +24,6 @@ export class AdService {
   }
 
   async subscribeUserToAdd(currentUser: CurrentUserDTO, adId: string) {
-    console.log('adId', adId);
-
     const ad = await this.adRepository.findAdById(adId);
 
     if (!ad) throw new NotFoundException('ad not found');
